@@ -20,9 +20,16 @@ def getIndexOfClassNameInClasses(className):
     index = next((i for i, c in enumerate(classes) if c.name == className), None)
     return index
 
+def addCommentIfNotAlreadyDone(className, path, position, value):
+    global commentedAlready
+    idx = getIndexOfClassNameInClasses(className)
+
+    if idx not in commentedAlready:
+        commentedAlready.append(getIndexOfClassNameInClasses(className))
+        insertLine(path, position, value)
+
 def hasVisitorStructure(className):
     global classes
-    global commentedAlready
     goodCandidates = []
 
     #################################################
@@ -37,12 +44,10 @@ def hasVisitorStructure(className):
         goodCandidates.append(index)
 
     for c in goodCandidates:
-        idx = getIndexOfClassNameInClasses(_subClasses[c].name)
-        if idx not in commentedAlready:
-            commentedAlready.append(
-                getIndexOfClassNameInClasses(_subClasses[c].name))
-            insertLine(path, _subClasses[c].position[0],
-                       "// Visitor pattern detected here (Visitor)")
+        addCommentIfNotAlreadyDone(_subClasses[c].name, path,
+                                   _subClasses[c].position[0],
+                                   "// Visitor pattern detected here (Visitor)")
+
     return True
 
 def hasVisiteeStructure(_class):
@@ -62,7 +67,7 @@ def hasVisiteeStructure(_class):
                 goodCandidate = True
 
         if goodCandidate:
-            insertLine(path, method.position[0],
+            addCommentIfNotAlreadyDone(_class.name, path, method.position[0],
                        "// Visitor pattern detected here (Visitee)")
 
 # ------------------------------------------------------------------------------
@@ -81,7 +86,6 @@ with open(path, "r") as file:
 
     for _class in classes:
         hasVisiteeStructure(_class)
+        hasVisitorStructure(_class)
 
-    # print(classes[0].methods[0].children)
-    # for node in classes.filter(javalang.tree.ClassDeclaration)
     file.close()
