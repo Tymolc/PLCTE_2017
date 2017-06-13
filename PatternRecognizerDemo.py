@@ -45,7 +45,7 @@ def hasVisitorStructure(className):
     global classes
     goodCandidates = []  # [classIndex, methodIndex]
 
-    ##########################################################################
+    ###########################################################################
     # Visitor should have super class,
     # find classes that have className as super class
     _subClasses = [c for c in classes if c.implements != None and
@@ -54,7 +54,7 @@ def hasVisitorStructure(className):
     if len(_subClasses) == 0:
         return False
 
-    ##########################################################################
+    ###########################################################################
     # visitor should have multiple methods that get exactly one parameter of
     # a class that implements the same super class
     counter = 0
@@ -73,32 +73,34 @@ def hasVisitorStructure(className):
                         else:
                             superClasses.append([1, paramSuperClass.name])
                             goodCandidates.append([classIndex, methodIndex, paramSuperClass.name])
+
+        #######################################################################
+        # filter candidates whose superclass only occurs once
         for superClassInfo in superClasses:
             for candidate in goodCandidates:
                 if candidate[2] == superClassInfo[1]:
                     if superClassInfo[0] <= 1:
                         goodCandidates.remove(candidate)
 
-    ##########################################################################
-    # if all rules are passed, add index of class to
-    # good candidates array and add a comment to it
-    # for index in range(len(_subClasses)):
-    #     goodCandidates.append(index)
-
+    ###########################################################################
+    # if all rules are passed, add a comment to method
     for c in goodCandidates:
         addCommentIfNotAlreadyDone(path, _subClasses[c[0]].methods[c[1]].position[0],
                                    "// Visitor pattern detected here (Visitor)")
 
-    return True
+    if len(goodCandidates) > 0:
+        return True
+    else:
+        return False
 
 
 def hasVisiteeStructure(_class):
-    ##########################################################################
+    ###########################################################################
     # visitee should have a virtual parent class
     if _class.implements == None:
         return False
 
-    ##########################################################################
+    ###########################################################################
     # loop over all methods
     for method in _class.methods:
         goodCandidate = False
