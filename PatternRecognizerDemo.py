@@ -1,19 +1,29 @@
 import javalang
 
-def insertLine(path, position, value):
+class Comment(object):
+    def __init__(self, path, position, text):
+        self.path = path
+        self.position = position
+        self.text = text
+
+def insertLine(comment):
     global offset
-    file = open(path, "r")
+    file = open(comment.path, "r")
     contents = file.readlines()
     file.close()
 
-    file = open(path, "a")
+    file = open(comment.path, "a")
     file.seek(0)
     file.truncate()
-    contents.insert(position + offset - 1, value + "\n")
+    contents.insert(comment.position + offset - 1, comment.text + "\n")
     file.writelines(contents)
     file.close()
 
     offset += 1
+
+def addComment(path, position, value):
+    global comments
+    comments.append(Comment(path, position, value))
 
 
 def getIndexOfClassNameInClasses(className):
@@ -38,7 +48,7 @@ def addCommentIfNotAlreadyDone(path, position, value):
 
     if position not in commentedAlready:
         commentedAlready.append(position)
-        insertLine(path, position, value)
+        addComment(path, position, value)
 
 
 def hasVisitorStructure(className):
@@ -130,6 +140,7 @@ offset = 0
 path = "./VisitorDemo/VisitorDemo.java"
 classes = []
 commentedAlready = []
+comments = []
 
 with open(path, "r") as file:
     tree = javalang.parse.parse(file.read())
@@ -143,3 +154,10 @@ with open(path, "r") as file:
         hasVisitorStructure(_class.name)
 
     file.close()
+
+#######################################################################
+# sort comment by position to avoid misalignment
+comments = sorted(comments, key=lambda comment: comment.position)
+
+for comment in comments:
+    insertLine(comment)
