@@ -13,7 +13,7 @@ class FOO implements Element {
 }
 
 class BAR implements Element {
-    public void   accept( Visitor v ) {
+    public void accept( Visitor v ) {
         v.visit( this );
     }
 
