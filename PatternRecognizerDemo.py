@@ -25,13 +25,18 @@ def addComment(path, position, value):
     global comments
     comments.append(Comment(path, position, value))
 
+def addCommentIfNotAlreadyDone(path, position, value):
+    global commentedAlready
+
+    if position not in commentedAlready:
+        commentedAlready.append(position)
+        addComment(path, position, value)
 
 def getIndexOfClassNameInClasses(className):
     global classes
     index = next((i for i, c in enumerate(classes)
                   if c.name == className), None)
     return index
-
 
 def getSuperClassByClassName(className):
     global classes
@@ -41,15 +46,6 @@ def getSuperClassByClassName(className):
         return _class.implements
     else:
         return None
-
-
-def addCommentIfNotAlreadyDone(path, position, value):
-    global commentedAlready
-
-    if position not in commentedAlready:
-        commentedAlready.append(position)
-        addComment(path, position, value)
-
 
 def hasVisitorStructure(className):
     global classes
@@ -155,7 +151,7 @@ with open(path, "r") as file:
 
     file.close()
 
-#######################################################################
+###############################################################################
 # sort comment by position to avoid misalignment
 comments = sorted(comments, key=lambda comment: comment.position)
 
