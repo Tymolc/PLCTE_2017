@@ -139,33 +139,81 @@ def hasVisiteeStructure(_class):
             addCommentIfNotAlreadyDone(path, method.position[0],
                                        "// Visitor pattern detected here (Visitee)")
 
+def doesLazyInitialization(_body, field):
+    ###########################################################################
+    # check if there is a check that instance is non
+    ifStatements = [child for child in _body if type(child) is javalang.tree.IfStatement]
+    for ifStatement in ifStatements:
+        if ifStatement.condition.operator == "==" and \
+           ifStatement.condition.operandl.member == field.declarators[0].name and \
+           ifStatement.condition.operandr.value == "null":
+           return True
+
+    return False
+
+def hasSingletonStructure(_class):
+    goodCandidates = []
+    instanceFieldCandidates = []
+    possibleComments = []
+
+    ###########################################################################
+    # singleton should have a private static field that holds the instance
+    for field in _class.fields:
+        if {'private', 'static'}.issubset(field.modifiers):
+            instanceFieldCandidates.append(field)
+
+    ###########################################################################
+    # singleton should have a public static accessor method that returns
+    # instance
+    for method in _class.methods:
+        for field in instanceFieldCandidates:
+            if method.return_type.name == field.type.name:
+                if doesLazyInitialization(method.body, field):
+                    possibleComments.append(Comment(path, field.position[0],
+                        "// Singleton pattern detected here (Instance Field)"))
+                    possibleComments.append(Comment(path, method.position[0],
+                        "// Singleton pattern detected here (Accessor Function)"))
+
+    publicCtors = [ctor for ctor in _class.constructors if "public" in ctor.modifiers]
+
+    ###########################################################################
+    # all constructors should be private or protected
+    if len(publicCtors) == 0:
+        for comment in possibleComments:
+            addCommentIfNotAlreadyDone(comment.path, comment.position, comment.text)
+
 # ------------------------------------------------------------------------------
 
 offset = 0
-path = "./VisitorDemo/VisitorDemo.java"
 classes = []
+path = ''
 commentedAlready = []
 comments = []
 
 class Patternrecognizer(sublime_plugin.TextCommand):
     def run(self, edit):
-        #self.view.insert(edit, 0, "Pattern recognizer done!")
-        file = sublime.Region(0, self.view.size())
+        global path
+        path = self.view.file_name()
+        global comments
+        with open(self.view.file_name(), "r") as file:
+            tree = javalang.parse.parse(file.read())
 
-        tree = javalang.parse.parse(file)
+            # collect all classes
+            for structure, node in tree.filter(javalang.tree.ClassDeclaration):
+                classes.append(node)
 
-        # collect all classes
-        for structure, node in tree.filter(javalang.tree.ClassDeclaration):
-            classes.append(node)
+            for _class in classes:
+                hasVisiteeStructure(_class)
+                hasVisitorStructure(_class)
+                hasSingletonStructure(_class)
 
-        for _class in classes:
-            hasVisiteeStructure(_class)
-            hasVisitorStructure(_class.name)
+            file.close()
 
+            comments = sorted(comments, key=lambda comment: comment.position)
+
+            for comment in comments:
+                insertLine(comment)
 ###############################################################################
 # sort comment by position to avoid misalignment
-comments = sorted(comments, key=lambda comment: comment.position)
 
-for comment in comments:
-    insertLine(comment)
 
