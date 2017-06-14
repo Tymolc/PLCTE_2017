@@ -1,0 +1,13 @@
+[
+    {
+        "id" : "PatternRecognizer",
+        "caption": "PatternRecognizer",
+        "children":
+        [
+            {
+                "caption" : "run",
+                "command" : "patternrecognizer"
+            }
+        ]
+    }
+]

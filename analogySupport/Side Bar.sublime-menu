@@ -1,0 +1,7 @@
+[
+    {
+        "id" : "PatternRecognizer",
+        "caption": "PatternRecognizer",
+        "command" : "patternrecognizer"
+    }
+]
