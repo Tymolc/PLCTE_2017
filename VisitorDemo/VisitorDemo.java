@@ -7,7 +7,6 @@ interface Test {
 }
 
 class FOO implements Element {
-// Visitor pattern detected here (Visitee)
     public void accept(Visitor v) {
         v.visit(this);
     }
@@ -18,7 +17,6 @@ class FOO implements Element {
 }
 
 class BAR implements Element {
-// Visitor pattern detected here (Visitee)
     public void accept( Visitor v ) {
         v.visit( this );
     }
@@ -29,7 +27,6 @@ class BAR implements Element {
 }
 
 class BAZ implements Element {
-// Visitor pattern detected here (Visitee)
     public void accept(Visitor v) {
         v.visit(this);
     }
@@ -52,17 +49,14 @@ interface Visitor {
 }
 
 class UpVisitor implements Visitor {
-// Visitor pattern detected here (Visitor)
     public void visit(FOO foo) {
         System.out.println("do Up on " + foo.getFOO());
     }
 
-// Visitor pattern detected here (Visitor)
     public void visit(BAR bar) {
         System.out.println("do Up on " + bar.getBAR());
     }
 
-// Visitor pattern detected here (Visitor)
     public void visit(BAZ baz) {
         System.out.println( "do Up on " + baz.getBAZ() );
     }
@@ -73,17 +67,14 @@ class UpVisitor implements Visitor {
 }
 
 class DownVisitor implements Visitor {
-// Visitor pattern detected here (Visitor)
     public void visit(FOO foo) {
         System.out.println("do Down on " + foo.getFOO());
     }
 
-// Visitor pattern detected here (Visitor)
     public void visit(BAR bar) {
         System.out.println("do Down on " + bar.getBAR());
     }
 
-// Visitor pattern detected here (Visitor)
     public void visit(BAZ baz ) {
         System.out.println("do Down on " + baz.getBAZ());
     }

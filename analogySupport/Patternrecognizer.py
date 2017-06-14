@@ -1,6 +1,13 @@
 import sublime
 import sublime_plugin
-import analogySupport.javalang
+
+import sys
+from os.path import dirname
+
+# request-dists is the folder in our plugin
+sys.path.append(dirname(__file__))
+
+import javalang
 
 class Comment(object):
     def __init__(self, path, position, text):
