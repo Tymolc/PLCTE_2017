@@ -15,6 +15,20 @@ class Comment(object):
         self.position = position
         self.text = text
 
+def insertHeaderComment(comment):
+    file = open(comment.path, "r")
+    contents = file.readlines()
+    file.close()
+
+    file = open(comment.path, "a")
+    file.seek(0)
+    file.truncate()
+    contents.insert(comment.position, comment.text + "\n")
+    file.writelines(contents)
+    file.close()
+
+    offset += 1
+
 def insertLine(comment):
     global offset
     file = open(comment.path, "r")
@@ -104,6 +118,8 @@ def hasVisitorStructure(className):
                                    "// Visitor pattern detected here (Visitor)")
 
     if len(goodCandidates) > 0:
+        global detectedVisitor
+        detectedVisitor = True
         return True
     else:
         return False
@@ -179,8 +195,14 @@ def hasSingletonStructure(_class):
     ###########################################################################
     # all constructors should be private or protected
     if len(publicCtors) == 0:
+        global detectedSingleton
+        detectedSingleton = True
         for comment in possibleComments:
             addCommentIfNotAlreadyDone(comment.path, comment.position, comment.text)
+
+def addDetectedPatterns(path, comment):
+    insertHeaderComment(Comment(path, 0,
+        "/*\nDetected Design Patterns:\n" + comment + "\n*/"))
 
 # ------------------------------------------------------------------------------
 
@@ -189,12 +211,27 @@ classes = []
 path = ''
 commentedAlready = []
 comments = []
+detectedSingleton = False
+detectedVisitor = False
 
 class Patternrecognizer(sublime_plugin.TextCommand):
     def run(self, edit):
+        global offset
+        global classes
         global path
-        path = self.view.file_name()
+        global commentedAlready
         global comments
+        global path
+        global detectedSingleton
+        global detectedVisitor
+
+        offset = 0
+        classes = []
+        commentedAlready = []
+        comments = []
+        detectedSingleton = False
+        detectedVisitor = False
+        path = self.view.file_name()
         with open(self.view.file_name(), "r") as file:
             tree = javalang.parse.parse(file.read())
 
@@ -209,11 +246,91 @@ class Patternrecognizer(sublime_plugin.TextCommand):
 
             file.close()
 
+            ###############################################################################
+            # sort comment by position to avoid misalignment
             comments = sorted(comments, key=lambda comment: comment.position)
 
             for comment in comments:
                 insertLine(comment)
-###############################################################################
-# sort comment by position to avoid misalignment
+
+            if detectedVisitor:
+                addDetectedPatterns(path,
+                    "Visitor, ref: https://sourcemaking.com/design_patterns/visitor")
+
+            if detectedSingleton:
+                addDetectedPatterns(path,
+                    "Singleton, ref: https://sourcemaking.com/design_patterns/singleton")
 
 
+class PatternrecognizerSingleton(sublime_plugin.TextCommand):
+    def run(self, edit):
+        global offset
+        global classes
+        global path
+        global commentedAlready
+        global comments
+        global path
+        offset = 0
+        classes = []
+        commentedAlready = []
+        comments = []
+        path = self.view.file_name()
+        with open(self.view.file_name(), "r") as file:
+            tree = javalang.parse.parse(file.read())
+
+            # collect all classes
+            for structure, node in tree.filter(javalang.tree.ClassDeclaration):
+                classes.append(node)
+
+            for _class in classes:
+                hasSingletonStructure(_class)
+
+            file.close()
+
+            ###############################################################################
+            # sort comment by position to avoid misalignment
+            comments = sorted(comments, key=lambda comment: comment.position)
+
+            for comment in comments:
+                insertLine(comment)
+
+            if comments:
+                addDetectedPatterns(path, "Singleton, ref: https://sourcemaking.com/design_patterns/singleton")
+
+class PatternrecognizerVisitor(sublime_plugin.TextCommand):
+    def run(self, edit):
+        global offset
+        global classes
+        global path
+        global commentedAlready
+        global comments
+        global path
+        global detectedVisitor
+
+        offset = 0
+        classes = []
+        commentedAlready = []
+        comments = []
+        path = self.view.file_name()
+        with open(self.view.file_name(), "r") as file:
+            tree = javalang.parse.parse(file.read())
+
+            # collect all classes
+            for structure, node in tree.filter(javalang.tree.ClassDeclaration):
+                classes.append(node)
+
+            for _class in classes:
+                hasVisiteeStructure(_class)
+                hasVisitorStructure(_class)
+
+            file.close()
+
+            ###############################################################################
+            # sort comment by position to avoid misalignment
+            comments = sorted(comments, key=lambda comment: comment.position)
+
+            for comment in comments:
+                insertLine(comment)
+
+            if detectedVisitor:
+                addDetectedPatterns(path, "Visitor, ref: https://sourcemaking.com/design_patterns/visitor")

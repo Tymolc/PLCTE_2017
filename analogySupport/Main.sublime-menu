@@ -5,8 +5,16 @@
         "children":
         [
             {
-                "caption" : "run",
+                "caption" : "all",
                 "command" : "patternrecognizer"
+            },
+            {
+                "caption" : "visitor",
+                "command" : "patternrecognizer_visitor"
+            },
+            {
+                "caption" : "singleton",
+                "command" : "patternrecognizer_singleton"
             }
         ]
     }
