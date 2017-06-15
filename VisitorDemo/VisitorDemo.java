@@ -49,6 +49,21 @@ interface Visitor {
 }
 
 class UpVisitor implements Visitor {
+    private static volatile UpVisitor instance;
+
+    private UpVisitor() {}
+
+    public static UpVisitor getInstance(String value) {
+        if (instance == null) {
+            synchronized (UpVisitor.class) {
+                if (instance == null) {
+                    instance = new UpVisitor();
+                }
+            }
+        }
+        return instance;
+    }
+
     public void visit(FOO foo) {
         System.out.println("do Up on " + foo.getFOO());
     }

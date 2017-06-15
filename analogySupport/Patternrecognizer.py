@@ -16,6 +16,7 @@ class Comment(object):
         self.text = text
 
 def insertHeaderComment(comment):
+    global offset
     file = open(comment.path, "r")
     contents = file.readlines()
     file.close()
@@ -183,12 +184,13 @@ def hasSingletonStructure(_class):
     # instance
     for method in _class.methods:
         for field in instanceFieldCandidates:
-            if method.return_type.name == field.type.name:
-                if doesLazyInitialization(method.body, field):
-                    possibleComments.append(Comment(path, field.position[0],
-                        "// Singleton pattern detected here (Instance Field)"))
-                    possibleComments.append(Comment(path, method.position[0],
-                        "// Singleton pattern detected here (Accessor Function)"))
+            if method.return_type != None:
+                if method.return_type.name == field.type.name:
+                    if doesLazyInitialization(method.body, field):
+                        possibleComments.append(Comment(path, field.position[0],
+                            "// Singleton pattern detected here (Instance Field)"))
+                        possibleComments.append(Comment(path, method.position[0],
+                            "// Singleton pattern detected here (Accessor Function)"))
 
     publicCtors = [ctor for ctor in _class.constructors if "public" in ctor.modifiers]
 
